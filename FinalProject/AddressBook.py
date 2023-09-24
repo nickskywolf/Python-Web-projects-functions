@@ -3,9 +3,10 @@ from collections import UserList
 import pickle
 from info import *
 import os
+from user_interface import UserInterface
 
 
-class AddressBook(UserList):
+class AddressBook(UserInterface):
     def __init__(self):
         self.data = []
         self.counter = -1
@@ -20,7 +21,6 @@ class AddressBook(UserList):
             if account['phones']:
                 new_value = []
                 for phone in account['phones']:
-                    print(phone)
                     if phone:
                         new_value.append(phone)
                 phone = ', '.join(new_value)
@@ -93,9 +93,7 @@ class AddressBook(UserList):
 
         for account in self.data:
             if category_new == 'phones':
-
                 for phone in account['phones']:
-
                     if phone.lower().startswith(pattern_new):
                         result.append(account)
             elif account[category_new].lower().replace(' ', '') == pattern_new:
@@ -143,9 +141,6 @@ class AddressBook(UserList):
                 self.data.remove(account)
                 self.log(f"Contact {account['name']} has been removed!")
                 flag = True
-            '''if pattern in account['phones']:
-                        account['phones'].remove(pattern)
-                        self.log.log(f"Phone number of {account['name']} has been removed!")'''
         return flag
 
     def __get_current_week(self):
@@ -176,3 +171,15 @@ class AddressBook(UserList):
                 result.append(f"{key}: {' '.join(value)}")
         return '_' * 50 + '\n' + '\n'.join(result) + '\n' + '_' * 50
 
+    def show_all(self):
+        result = []
+        for account in self.data:
+            if account['birthday']:
+                birth = account['birthday'].strftime("%d/%m/%Y")
+            else:
+                birth = ''
+            if account['phones']:
+                new_value = []
+                for phone in account['phones']:
+                    if phone:
+                        new
