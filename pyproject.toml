@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "web-goit"
+version = "0.1.0"
+description = "web_project"
+authors = ["nickskywolf"]
+license = "standart"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
