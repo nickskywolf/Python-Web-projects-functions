@@ -1,1 +1,0 @@
-{'username': 'xxxxxx', 'person_type': 'good', 'sex': 'boy', 'letter_content': '', 'email': ''}

@@ -1,109 +1,150 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, Date
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from faker import Faker
+import sqlite3
 import random
-from datetime import date
+from datetime import datetime, timedelta
 
-# Створення бази даних та сесії
-engine = create_engine('sqlite:///students.db', echo=True)
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
-session = Session()
+fake = Faker()
+
+# З'єднання з базою даних
+conn = sqlite3.connect("university.db")
+cursor = conn.cursor()
 
 # Створення таблиць
-class Student(Base):
-    __tablename__ = 'students'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    group_id = Column(Integer, ForeignKey('groups.id'))
-    scores = relationship('Score', back_populates='student')
-    group = relationship('Group', back_populates='students')
-
-# В класі Group додайте back_populates для subjects
-class Group(Base):
-    __tablename__ = 'groups'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    students = relationship('Student', back_populates='group')
-    subjects = relationship('Subject', secondary='subject_group', back_populates='groups')
-
-# В класі Subject додайте back_populates для groups
-class Subject(Base):
-    __tablename__ = 'subjects'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    teacher_id = Column(Integer, ForeignKey('teachers.id'))
-    scores = relationship('Score', back_populates='subject')
-    teacher = relationship('Teacher', back_populates='subjects')
-    groups = relationship('Group', secondary='subject_group', back_populates='subjects')
-
-
-class Teacher(Base):
-    __tablename__ = 'teachers'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    subjects = relationship('Subject', back_populates='teacher')
-
-class Score(Base):
-    __tablename__ = 'scores'
-
-    id = Column(Integer, primary_key=True)
-    student_id = Column(Integer, ForeignKey('students.id'))
-    subject_id = Column(Integer, ForeignKey('subjects.id'))
-    score = Column(Float)
-    date = Column(Date)
-    student = relationship('Student', back_populates='scores')
-    subject = relationship('Subject', back_populates='scores')
-
-# Створення таблиці для зв'язку між предметами та групами
-subject_group = Table('subject_group', Base.metadata,
-    Column('group_id', Integer, ForeignKey('groups.id')),
-    Column('subject_id', Integer, ForeignKey('subjects.id'))
+cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        group_id INTEGER
+    );
+"""
 )
 
-Base.metadata.create_all(engine)
+cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT
+    );
+"""
+)
+
+cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS teachers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT
+    );
+"""
+)
+
+cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        teacher_id INTEGER
+    );
+"""
+)
+
+cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS grades (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        subject_id INTEGER,
+        grade INTEGER,
+        date TEXT
+    );
+"""
+)
 
 # Заповнення таблиць випадковими даними
-fake = Faker()
-groups = []
-subjects = []
-teachers = []
-students = []
+groups = ["Group A", "Group B", "Group C"]
+for group in groups:
+    cursor.execute("INSERT INTO groups (name) VALUES (?);", (group,))
 
-# Створення груп
-for _ in range(3):
-    group = Group(name=fake.word())
-    groups.append(group)
+teachers = ["Teacher 1", "Teacher 2", "Teacher 3"]
+for teacher in teachers:
+    cursor.execute("INSERT INTO teachers (name) VALUES (?);", (teacher,))
 
-# Створення викладачів
-for _ in range(4):
-    teacher = Teacher(name=fake.name())
-    teachers.append(teacher)
+subjects = ["Math", "Physics", "Chemistry", "Biology", "History"]
+for subject in subjects:
+    teacher_id = random.randint(1, len(teachers))
+    cursor.execute(
+        "INSERT INTO subjects (name, teacher_id) VALUES (?, ?);", (subject, teacher_id)
+    )
 
-# Створення предметів та призначення викладачів
-for _ in range(8):
-    subject = Subject(name=fake.word())
-    subject.teacher_id = random.choice(teachers).id
-    subjects.append(subject)
+students_count = 50
+for _ in range(students_count):
+    name = fake.name()
+    group_id = random.randint(1, len(groups))
+    cursor.execute(
+        "INSERT INTO students (name, group_id) VALUES (?, ?);", (name, group_id)
+    )
 
-# Створення студентів та призначення груп
-for _ in range(50):
-    student = Student(name=fake.name())
-    student.group_id = random.choice(groups).id
-    students.append(student)
+grades_count = 100
+for _ in range(grades_count):
+    student_id = random.randint(1, students_count)
+    subject_id = random.randint(1, len(subjects))
+    grade = random.randint(60, 100)
+    date = (datetime.now() - timedelta(days=random.randint(1, 365))).strftime(
+        "%Y-%m-%d"
+    )
+    cursor.execute(
+        "INSERT INTO grades (student_id, subject_id, grade, date) VALUES (?, ?, ?, ?);",
+        (student_id, subject_id, grade, date),
+    )
 
-# Додавання оцінок
-for student in students:
-    for subject in subjects:
-        score = Score(score=random.uniform(2, 5), date=fake.date_between(start_date='-1y', end_date='today'))
-        score.student = student
-        score.subject = subject
-        session.add(score)
+# Збереження змін у базі даних
+conn.commit()
 
-session.commit()
+# Виконання SQL запитів та запис їх у файли
+queries = [
+    "SELECT students.name, AVG(grades.grade) as avg_grade FROM students "
+    "JOIN grades ON students.id = grades.student_id "
+    "GROUP BY students.id "
+    "ORDER BY avg_grade DESC LIMIT 5;",
+    "SELECT students.name, AVG(grades.grade) as avg_grade FROM students "
+    "JOIN grades ON students.id = grades.student_id "
+    "WHERE grades.subject_id = 1 "
+    "GROUP BY students.id "
+    "ORDER BY avg_grade DESC LIMIT 1;",
+    "SELECT groups.name, AVG(grades.grade) as avg_grade FROM students "
+    "JOIN groups ON students.group_id = groups.id "
+    "JOIN grades ON students.id = grades.student_id "
+    "WHERE grades.subject_id = 1 "
+    "GROUP BY groups.id;",
+    "SELECT AVG(grades.grade) as avg_grade FROM grades;",
+    "SELECT subjects.name FROM subjects "
+    "JOIN teachers ON subjects.teacher_id = teachers.id "
+    "WHERE teachers.name = 'Teacher 1';",
+    "SELECT students.name FROM students "
+    "JOIN groups ON students.group_id = groups.id "
+    "WHERE groups.name = 'Group A';",
+    "SELECT grades.grade FROM grades "
+    "JOIN students ON grades.student_id = students.id "
+    "JOIN groups ON students.group_id = groups.id "
+    "WHERE groups.name = 'Group A' AND grades.subject_id = 1;",
+    "SELECT AVG(grades.grade) as avg_grade FROM grades "
+    "JOIN subjects ON grades.subject_id = subjects.id "
+    "JOIN teachers ON subjects.teacher_id = teachers.id "
+    "WHERE teachers.name = 'Teacher 1';",
+    "SELECT subjects.name FROM subjects "
+    "JOIN grades ON subjects.id = grades.subject_id "
+    "JOIN students ON grades.student_id = students.id "
+    "WHERE students.name = 'John Doe';",
+    "SELECT subjects.name FROM subjects "
+    "JOIN grades ON subjects.id = grades.subject_id "
+    "JOIN teachers ON subjects.teacher_id = teachers.id "
+    "JOIN students ON grades.student_id = students.id "
+    "WHERE students.name = 'John Doe' AND teachers.name = 'Teacher 1';",
+]
+
+for i, query in enumerate(queries, 1):
+    with open(f"query_{i}.sql", "w") as file:
+        file.write(query)
+
+# Закриття з'єднання з базою даних
+conn.close()
