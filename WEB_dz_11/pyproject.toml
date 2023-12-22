@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "web-hw-11"
+version = "0.1.0"
+description = ""
+authors = ["AlexanderF048 <alexandr.frankevich@gmail.com>"]
+readme = "README.md"
+packages = [{include = "web_hw_11"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.92.0"
+uvicorn = {extras = ["standard"], version = "^0.20.0"}
+sqlalchemy = "^2.0.4"
+psycopg2 = "^2.9.5"
+python-multipart = "^0.0.5"
+alembic = "^1.9.4"
+pydantic = {extras = ["email"], version = "^1.10.5"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
