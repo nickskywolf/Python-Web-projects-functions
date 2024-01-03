@@ -1,20 +1,24 @@
 [tool.poetry]
-name = "web-hw-11"
+name = "web-hw11"
 version = "0.1.0"
 description = ""
-authors = ["AlexanderF048 <alexandr.frankevich@gmail.com>"]
+authors = ["m1hanch <misha5264@gmail.com>"]
 readme = "README.md"
-packages = [{include = "web_hw_11"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.92.0"
-uvicorn = {extras = ["standard"], version = "^0.20.0"}
-sqlalchemy = "^2.0.4"
-psycopg2 = "^2.9.5"
-python-multipart = "^0.0.5"
-alembic = "^1.9.4"
-pydantic = {extras = ["email"], version = "^1.10.5"}
+fastapi = "^0.104.1"
+alembic = "^1.13.0"
+sqlalchemy = "^2.0.23"
+asyncpg = "^0.29.0"
+uvicorn = "^0.24.0.post1"
+pydantic = {extras = ["email"], version = "^2.5.2"}
+python-dotenv = "^1.0.0"
+fastapi-jwt-auth = "^0.5.0"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+python-multipart = "^0.0.6"
+bcrypt = "^4.1.2"
 
 
 [build-system]
