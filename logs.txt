@@ -1,5 +1,0 @@
-[12:41:28] Addressbook has been loaded!
-[12:42:15] Addressbook has been loaded!
-[12:43:20] Contact Orn has been added.
-[12:43:20] Addressbook has been saved!
-[12:49:22] Addressbook has been loaded!
