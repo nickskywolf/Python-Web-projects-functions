@@ -1,9 +1,9 @@
-.. Alex_fastAPI documentation master file, created by
+.. Nick_fastAPI_fastAPI documentation master file, created by
    sphinx-quickstart on Thu Mar 16 23:01:02 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Alex_fastAPI's documentation!
+Welcome to Nick_fastAPI's documentation!
 ========================================
 
 .. toctree::
